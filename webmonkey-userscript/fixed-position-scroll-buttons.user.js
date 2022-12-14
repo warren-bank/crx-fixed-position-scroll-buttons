@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         fixed position scroll buttons
 // @description  Display a small fixed-position group of scroll buttons on all webpages.
-// @version      1.0.0
+// @version      1.1.0
 // @include      /^.*$/
 // @icon         https://github.com/google/material-design-icons/raw/4.0.0/png/hardware/mouse/materialiconstwotone/24dp/2x/twotone_mouse_black_24dp.png
 // @run-at       document-end
@@ -18,6 +18,9 @@
 // ----------------------------------------------------------------------------- configuration
 
 var user_options = {
+  init: {
+    "delay-ms":    5000  // delay DOM update to allow other userscripts the opportunity to rewrite the DOM first
+  },
   css: {
     "font-family": "monospace",
     "font-size":   "20px",
@@ -96,6 +99,8 @@ var build_dom = function() {
       '}',
       '#' + constants.css.ids.container + ' > div {',
       '  display: inline-block;',
+      '  padding: 0px;',
+      '  margin:  0px;',
       '}',
       '#' + constants.css.ids.container + ' > div.' + constants.css.classes.drag_handle + ' {',
       '  cursor: grab;',
@@ -269,4 +274,7 @@ var init = function() {
   attach_events()
 }
 
-init()
+if (user_options.init["delay-ms"])
+  unsafeWindow.setTimeout(init, user_options.init["delay-ms"])
+else
+  init()
