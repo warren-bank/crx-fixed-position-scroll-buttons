@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         fixed position scroll buttons
 // @description  Display a small fixed-position group of scroll buttons on all webpages.
-// @version      1.1.0
+// @version      1.2.0
 // @include      /^.*$/
 // @icon         https://github.com/google/material-design-icons/raw/4.0.0/png/hardware/mouse/materialiconstwotone/24dp/2x/twotone_mouse_black_24dp.png
 // @run-at       document-end
@@ -40,8 +40,8 @@ const constants = {
       container: 'fixed_position_scroll_buttons_container'
     },
     classes: {
-      drag_handle: 'drag_handle',
-      button:      'button'
+      drag_handle: 'fpsb_drag_handle',
+      button:      'fpsb_button'
     }
   }
 }
@@ -69,8 +69,11 @@ var make_element = function(elementName, html) {
   return el
 }
 
-var cancel_event = function(event) {
+var cancel_event = function(event, blur) {
   event.stopPropagation();event.stopImmediatePropagation();event.preventDefault();event.returnValue=false;
+
+  if (blur)
+    event.target.blur()
 }
 
 // ----------------------------------------------------------------------------- build DOM
@@ -82,13 +85,14 @@ var build_dom = function() {
 
   html = []
   html.push(
-      '#' + constants.css.ids.container + ' {',
-      '  display:    block;',
-      '  position:   fixed;',
-      '  z-index:    99999;',
-      '  top:        0px;',
-      '  left:       0px;',
-      '  background: #fff;'
+      'body > #' + constants.css.ids.container + ' {',
+      '  display:      block !important;',
+      '  position:     fixed;',
+      '  z-index:      99999;',
+      '  top:          0px;',
+      '  left:         0px;',
+      '  background:   #fff;',
+      '  user-select:  none !important;'
   )
   for (var name in user_options.css) {
     html.push(
@@ -97,15 +101,17 @@ var build_dom = function() {
   }
   html.push(
       '}',
-      '#' + constants.css.ids.container + ' > div {',
-      '  display: inline-block;',
-      '  padding: 0px;',
-      '  margin:  0px;',
+      'body > #' + constants.css.ids.container + ' > div {',
+      '  display:      inline-block !important;',
+      '  border-style: none !important;',
+      '  user-select:  none !important;',
+      '  padding:      0px;',
+      '  margin:       0px;',
       '}',
-      '#' + constants.css.ids.container + ' > div.' + constants.css.classes.drag_handle + ' {',
+      'body > #' + constants.css.ids.container + ' > div.' + constants.css.classes.drag_handle + ' {',
       '  cursor: grab;',
       '}',
-      '#' + constants.css.ids.container + ' > div.' + constants.css.classes.button + ' {',
+      'body > #' + constants.css.ids.container + ' > div.' + constants.css.classes.button + ' {',
       '  cursor: pointer;',
       '}'
   )
@@ -188,6 +194,8 @@ var onmousemove_document = function(event) {
 }
 
 var onmouseup_document = function(event) {
+  cancel_event(event, true)
+
   // remove temporary event listeners from document
   unsafeWindow.document.removeEventListener('mousemove', onmousemove_document)
   unsafeWindow.document.removeEventListener('mouseup',   onmouseup_document)
@@ -214,7 +222,7 @@ var attach_events_buttons = function() {
 }
 
 var onclick_button_top = function(event) {
-  cancel_event(event)
+  cancel_event(event, true)
 
   var scrollTop = 0
 
@@ -222,7 +230,7 @@ var onclick_button_top = function(event) {
 }
 
 var onclick_button_up = function(event) {
-  cancel_event(event)
+  cancel_event(event, true)
 
   var scrollTop = get_vertical_scroll_current_position() - get_vertical_scroll_increment()
 
@@ -233,7 +241,7 @@ var onclick_button_up = function(event) {
 }
 
 var onclick_button_down = function(event) {
-  cancel_event(event)
+  cancel_event(event, true)
 
   var scrollTop = get_vertical_scroll_current_position() + get_vertical_scroll_increment()
 
@@ -244,7 +252,7 @@ var onclick_button_down = function(event) {
 }
 
 var onclick_button_bottom = function(event) {
-  cancel_event(event)
+  cancel_event(event, true)
 
   var scrollTop = get_document_height()
 
@@ -252,7 +260,7 @@ var onclick_button_bottom = function(event) {
 }
 
 var get_screen_height = function() {
-  return unsafeWindow.document.documentElement.clientHeight
+  return unsafeWindow.innerHeight
 }
 
 var get_document_height = function() {
@@ -260,7 +268,7 @@ var get_document_height = function() {
 }
 
 var get_vertical_scroll_current_position = function() {
-  return unsafeWindow.document.documentElement.scrollTop
+  return unsafeWindow.scrollY
 }
 
 var get_vertical_scroll_increment = function() {
