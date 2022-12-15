@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         fixed position scroll buttons
 // @description  Display a small fixed-position group of scroll buttons on all webpages.
-// @version      1.2.0
+// @version      1.3.0
 // @include      /^.*$/
 // @icon         https://github.com/google/material-design-icons/raw/4.0.0/png/hardware/mouse/materialiconstwotone/24dp/2x/twotone_mouse_black_24dp.png
 // @run-at       document-end
@@ -277,7 +277,13 @@ var get_vertical_scroll_increment = function() {
 
 // ----------------------------------------------------------------------------- bootstrap
 
+var should_init = function() {
+  return !unsafeWindow.document.getElementById(constants.css.ids.container)
+}
+
 var init = function() {
+  if (!should_init()) return
+
   build_dom()
   attach_events()
 }
