@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         fixed position scroll buttons
 // @description  Display a small fixed-position group of scroll buttons on all webpages.
-// @version      1.3.0
+// @version      1.4.0
 // @include      /^.*$/
 // @icon         https://github.com/google/material-design-icons/raw/4.0.0/png/hardware/mouse/materialiconstwotone/24dp/2x/twotone_mouse_black_24dp.png
 // @run-at       document-end
@@ -18,13 +18,16 @@
 // ----------------------------------------------------------------------------- configuration
 
 var user_options = {
+  enable_button_group: {
+    scroll: true,
+    reload: true
+  },
   init: {
     "delay-ms":    5000  // delay DOM update to allow other userscripts the opportunity to rewrite the DOM first
   },
   css: {
     "font-family": "monospace",
     "font-size":   "20px",
-    "padding":     "5px 10px",
     "border":      "1px solid black"
   },
   scroll: {
@@ -40,8 +43,9 @@ const constants = {
       container: 'fixed_position_scroll_buttons_container'
     },
     classes: {
-      drag_handle: 'fpsb_drag_handle',
-      button:      'fpsb_button'
+      group_divider: 'fpsb_divider',
+      drag_handle:   'fpsb_drag_handle',
+      button:        'fpsb_button'
     }
   }
 }
@@ -105,7 +109,7 @@ var build_dom = function() {
       '  display:      inline-block !important;',
       '  border-style: none !important;',
       '  user-select:  none !important;',
-      '  padding:      0px;',
+      '  padding:      0.25em;',
       '  margin:       0px;',
       '}',
       'body > #' + constants.css.ids.container + ' > div.' + constants.css.classes.drag_handle + ' {',
@@ -113,6 +117,12 @@ var build_dom = function() {
       '}',
       'body > #' + constants.css.ids.container + ' > div.' + constants.css.classes.button + ' {',
       '  cursor: pointer;',
+      '}',
+      'body > #' + constants.css.ids.container + ' > div.' + constants.css.classes.group_divider + ' {',
+      '  padding-left:     0px;',
+      '  padding-right:    0px;',
+      '  width:            1px;',
+      '  background-color: black;',
       '}'
   )
 
@@ -125,20 +135,38 @@ var build_dom = function() {
     up:     "scroll up",
     down:   "scroll down",
     bottom: "scroll to bottom",
-    drag:   "drag to move"
+    drag:   "drag to move",
+    reload: "reload page"
   }
 
-  html = [
+  html = []
+  if (user_options.enable_button_group.scroll) {
+    html.push(
       '<div class="' + constants.css.classes.button + ' top"    role="img" alt="' + titles.top    + '" title="' + titles.top    + '">&#8607;</div>',
-      '<div class="' + constants.css.classes.button + ' up"     role="img" alt="' + titles.up     + '" title="' + titles.up     + '">&#8593;</div>',
-
-      '<div class="' + constants.css.classes.drag_handle + '"   role="img" alt="' + titles.drag   + '" title="' + titles.drag   + '">&#10021;</div>',
-
+      '<div class="' + constants.css.classes.button + ' up"     role="img" alt="' + titles.up     + '" title="' + titles.up     + '">&#8593;</div>'
+    )
+  }
+  html.push(
+    '<div class="' + constants.css.classes.drag_handle + '"   role="img" alt="' + titles.drag   + '" title="' + titles.drag   + '">&#10021;</div>'
+  )
+  if (user_options.enable_button_group.scroll) {
+    html.push(
       '<div class="' + constants.css.classes.button + ' down"   role="img" alt="' + titles.down   + '" title="' + titles.down   + '">&#8595;</div>',
       '<div class="' + constants.css.classes.button + ' bottom" role="img" alt="' + titles.bottom + '" title="' + titles.bottom + '">&#8609;</div>'
-  ]
+    )
+  }
+  if (user_options.enable_button_group.scroll && user_options.enable_button_group.reload) {
+    html.push(
+      '<div class="' + constants.css.classes.group_divider + '">&nbsp;</div>'
+    )
+  }
+  if (user_options.enable_button_group.reload) {
+    html.push(
+      '<div class="' + constants.css.classes.button + ' reload" role="img" alt="' + titles.reload + '" title="' + titles.reload + '">&#10227;</div>'
+    )
+  }
 
-  state.container = make_element('div', html.join("\n"))
+  state.container = make_element('div', html.join(''))
   state.container.setAttribute('id', constants.css.ids.container)
 
   body.appendChild(
@@ -208,7 +236,8 @@ var attach_events_buttons = function() {
     top:    state.container.querySelector(':scope > div.' + constants.css.classes.button + '.top'),
     up:     state.container.querySelector(':scope > div.' + constants.css.classes.button + '.up'),
     down:   state.container.querySelector(':scope > div.' + constants.css.classes.button + '.down'),
-    bottom: state.container.querySelector(':scope > div.' + constants.css.classes.button + '.bottom')
+    bottom: state.container.querySelector(':scope > div.' + constants.css.classes.button + '.bottom'),
+    reload: state.container.querySelector(':scope > div.' + constants.css.classes.button + '.reload')
   }
 
   if (buttons.top)
@@ -219,6 +248,8 @@ var attach_events_buttons = function() {
     buttons.down.addEventListener('click', onclick_button_down)
   if (buttons.bottom)
     buttons.bottom.addEventListener('click', onclick_button_bottom)
+  if (buttons.reload)
+    buttons.reload.addEventListener('click', onclick_button_reload)
 }
 
 var onclick_button_top = function(event) {
@@ -259,6 +290,12 @@ var onclick_button_bottom = function(event) {
   unsafeWindow.scrollTo(0, scrollTop)
 }
 
+var onclick_button_reload = function(event) {
+  cancel_event(event, true)
+
+  unsafeWindow.location.reload()
+}
+
 var get_screen_height = function() {
   return unsafeWindow.innerHeight
 }
@@ -288,7 +325,9 @@ var init = function() {
   attach_events()
 }
 
-if (user_options.init["delay-ms"])
-  unsafeWindow.setTimeout(init, user_options.init["delay-ms"])
-else
-  init()
+if (user_options.enable_button_group.scroll || user_options.enable_button_group.reload) {
+  if (user_options.init["delay-ms"])
+    unsafeWindow.setTimeout(init, user_options.init["delay-ms"])
+  else
+    init()
+}
