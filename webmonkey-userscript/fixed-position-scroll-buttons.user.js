@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         fixed position scroll buttons
 // @description  Display a small fixed-position group of scroll buttons on all webpages.
-// @version      1.4.0
+// @version      1.4.1
 // @include      /^.*$/
 // @icon         https://github.com/google/material-design-icons/raw/4.0.0/png/hardware/mouse/materialiconstwotone/24dp/2x/twotone_mouse_black_24dp.png
 // @run-at       document-end
@@ -88,41 +88,58 @@ var build_dom = function() {
   var html
 
   html = []
+  // CSS reset
+  html.push(
+      'body > #' + constants.css.ids.container + ',',
+      'body > #' + constants.css.ids.container + ' > div {',
+      '  width:         auto !important;',
+      '  min-width:     unset !important;',
+      '  max-width:     unset !important;',
+      '  height:        auto !important;',
+      '  min-height:    unset !important;',
+      '  max-height:    unset !important;',
+      '  padding:       0px !important;',
+      '  margin:        0px !important;',
+      '  background:    #fff !important;',
+      '  border-radius: unset !important;',
+      '  box-shadow:    none !important;',
+      '}'
+  )
+  // CSS
   html.push(
       'body > #' + constants.css.ids.container + ' {',
       '  display:      block !important;',
-      '  position:     fixed;',
-      '  z-index:      99999;',
-      '  top:          0px;',
-      '  left:         0px;',
-      '  background:   #fff;',
+      '  position:     fixed !important;',
+      '  z-index:      99999 !important;',
+      '  top:          0px !important;',
+      '  left:         0px !important;',
+      '  bottom:       unset !important;',
+      '  right:        unset !important;',
       '  user-select:  none !important;'
   )
   for (var name in user_options.css) {
     html.push(
-      '  ' + name + ': ' + user_options.css[name] + ';'
+      '  ' + name + ': ' + user_options.css[name] + ' !important;'
     )
   }
   html.push(
       '}',
       'body > #' + constants.css.ids.container + ' > div {',
       '  display:      inline-block !important;',
-      '  border-style: none !important;',
       '  user-select:  none !important;',
-      '  padding:      0.25em;',
-      '  margin:       0px;',
+      '  padding:      0.25em !important;',
       '}',
       'body > #' + constants.css.ids.container + ' > div.' + constants.css.classes.drag_handle + ' {',
-      '  cursor: grab;',
+      '  cursor: grab !important;',
       '}',
       'body > #' + constants.css.ids.container + ' > div.' + constants.css.classes.button + ' {',
-      '  cursor: pointer;',
+      '  cursor: pointer !important;',
       '}',
       'body > #' + constants.css.ids.container + ' > div.' + constants.css.classes.group_divider + ' {',
-      '  padding-left:     0px;',
-      '  padding-right:    0px;',
-      '  width:            1px;',
-      '  background-color: black;',
+      '  padding-left:     0px !important;',
+      '  padding-right:    0px !important;',
+      '  width:            1px !important;',
+      '  background-color: black !important;',
       '}'
   )
 
@@ -217,8 +234,8 @@ var onmousemove_document = function(event) {
   state.drag_handle.pos4 = event.clientY
 
   // move container by relative distance
-  state.container.style.top  = (state.container.offsetTop  - state.drag_handle.pos2) + "px"
-  state.container.style.left = (state.container.offsetLeft - state.drag_handle.pos1) + "px"
+  state.container.style.setProperty('top',  (state.container.offsetTop  - state.drag_handle.pos2) + 'px', 'important')
+  state.container.style.setProperty('left', (state.container.offsetLeft - state.drag_handle.pos1) + 'px', 'important')
 }
 
 var onmouseup_document = function(event) {
