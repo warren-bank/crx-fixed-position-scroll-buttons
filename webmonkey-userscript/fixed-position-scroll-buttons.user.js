@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         fixed position scroll buttons
 // @description  Display a small fixed-position group of scroll buttons on all webpages.
-// @version      1.4.1
+// @version      1.4.2
 // @include      /^.*$/
 // @icon         https://github.com/google/material-design-icons/raw/4.0.0/png/hardware/mouse/materialiconstwotone/24dp/2x/twotone_mouse_black_24dp.png
 // @run-at       document-end
@@ -26,9 +26,12 @@ var user_options = {
     "delay-ms":    5000  // delay DOM update to allow other userscripts the opportunity to rewrite the DOM first
   },
   css: {
-    "font-family": "monospace",
-    "font-size":   "20px",
-    "border":      "1px solid black"
+    "background-color": "white",
+    "color":            "black",
+    "font-family":      "monospace",
+    "font-size":        "20px",
+    "font-weight":      "normal",
+    "border":           "1px solid black"
   },
   scroll: {
     "increment-by-multiple-of-screen-height": 0.75
@@ -100,7 +103,6 @@ var build_dom = function() {
       '  max-height:    unset !important;',
       '  padding:       0px !important;',
       '  margin:        0px !important;',
-      '  background:    #fff !important;',
       '  border-radius: unset !important;',
       '  box-shadow:    none !important;',
       '}'
